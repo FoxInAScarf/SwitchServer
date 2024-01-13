@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Server Switch</title>
+    </head>
+    <body>
+
+        <button onclick="toggle()" id="toggleButton">ON</button>
+        <button onclick="restart()" id="restartButton">Restart</button>
+        <br>
+
+        <input type="password" id="password">
+        <button onclick="changePassword()">Change Password</button>
+        <br>
+
+        <button onclick="logout()">Log Out</button>
+
+        <script>
+
+            window.onload = () => {
+
+                updateStatus();
+                setInterval(updateStatus, 10000);
+
+            };
+
+            function updateStatus() {
+
+                fetch("/status", { method: "POST" }).then(async (response) => {
+
+                    var status = await response.text();
+                    var sStatus = status.split("-!&!-");
+
+                    var toggleButton = document.getElementById("toggleButton");
+                    if (sStatus[0] == "on") toggleButton.innerHTML = "Turn OFF";
+                    else toggleButton.innerHTML = "Turn ON";
+                    
+                    var restartButton = document.getElementById("restartButton");
+                    if (sStatus[0] == "off") restartButton.style.visibility = "hidden";
+                    else restartButton.style.visibility = "visible";
+
+                    if (sStatus[1] == "") alert("WARNING: No password set!");
+
+                });
+
+            }
+
+            function toggle() {
+
+                fetch("/toggle", { method: "POST" }).then(updateStatus);
+
+            }
+
+            function restart() {
+
+                fetch("/restart", { method: "POST" }).then(updateStatus);
+
+            }
+
+            function logout() {
+
+                fetch("/logout", { method: "POST" }).then(() => {
+
+                    setCookie("SessionID", null, null);
+
+                    window.location.reload();
+
+                });
+
+            }
+
+            function changePassword() {
+
+                var newPassword = document.getElementById("password").value;
+                fetch("/changePassword", {
+
+                    method: "POST",
+                    body: newPassword
+
+                });
+
+            }
+
+            // copied from w3schools.com, too lazy to code it all myself
+
+            function setCookie(cname, cvalue, exdays) {
+                const d = new Date();
+                d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+                let expires = "expires="+d.toUTCString();
+                document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+              }
+
+            function getCookie(cname) {
+                let name = cname + "=";
+                let ca = document.cookie.split(';');
+                for(let i = 0; i < ca.length; i++) {
+                  let c = ca[i];
+                  while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                  }
+                  if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                  }
+                }
+                return "";
+              }
+
+        </script>
+
+    </body>
+</html>

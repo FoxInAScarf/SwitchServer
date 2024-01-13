@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Log In</title>
+    </head>
+    <body>
+
+        <input type="password" id="password">
+        <button onclick="login()">Log In</button>
+
+        <script>
+
+            function login() {
+
+                var password = document.getElementById("password").value;
+                fetch("/login", {
+
+                    method: "POST",
+                    body: password
+
+                }).then(async (response) => {
+
+                    if (response.status == 200) {
+
+                        var session = await response.text();
+
+                        setCookie("SessionID", null, null);
+                        setCookie("SessionID", session, 2);
+
+                        window.location.reload();
+
+                    }
+
+                    if (response.status == 401) {
+
+                        alert("Wrong password!");
+                    }
+
+                });
+
+            }
+
+            // copied from w3schools.com, too lazy to code it all myself
+
+            function setCookie(cname, cvalue, exdays) {
+                const d = new Date();
+                d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+                let expires = "expires="+d.toUTCString();
+                document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+              }
+
+            function getCookie(cname) {
+                let name = cname + "=";
+                let ca = document.cookie.split(';');
+                for(let i = 0; i < ca.length; i++) {
+                  let c = ca[i];
+                  while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                  }
+                  if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                  }
+                }
+                return "";
+              }
+
+        </script>
+    </body>
+</html>
