@@ -7,6 +7,7 @@
     </head>
     <body>
 
+        <p id="process"></p>
         <button onclick="toggle()" id="toggleButton">ON</button>
         <button onclick="restart()" id="restartButton">Restart</button>
         <br>
@@ -19,12 +20,24 @@
 
         <script>
 
+            var toggleButton = document.getElementById("toggleButton");
+            var restartButton = document.getElementById("restartButton");
+            var processStatus = document.getElementById("process");
+
             window.onload = () => {
 
                 updateStatus();
                 setInterval(updateStatus, 10000);
 
             };
+
+            function showInProcess() {
+
+                toggleButton.style.visibility = "hidden";
+                restartButton.style.visibility = "hidden";
+                processStatus.innerHTML = "In process...";
+
+            }
 
             function updateStatus() {
 
@@ -33,11 +46,18 @@
                     var status = await response.text();
                     var sStatus = status.split("-!&!-");
 
-                    var toggleButton = document.getElementById("toggleButton");
+                    if (sStatus[0] == "inProcess") showInProcess();
+                    else {
+
+                        toggleButton.style.visibility = "visible";
+                        restartButton.style.visibility = "visible";
+                        processStatus.innerHTML = "";
+
+                    }
+
                     if (sStatus[0] == "on") toggleButton.innerHTML = "Turn OFF";
                     else toggleButton.innerHTML = "Turn ON";
                     
-                    var restartButton = document.getElementById("restartButton");
                     if (sStatus[0] == "off") restartButton.style.visibility = "hidden";
                     else restartButton.style.visibility = "visible";
 
@@ -49,12 +69,14 @@
 
             function toggle() {
 
+                showInProcess();
                 fetch("/toggle", { method: "POST" }).then(updateStatus);
 
             }
 
             function restart() {
 
+                showInProcess();
                 fetch("/restart", { method: "POST" }).then(updateStatus);
 
             }
